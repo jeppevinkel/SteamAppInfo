@@ -5,26 +5,65 @@ namespace SteamSoundtrackReader;
 
 public class StoreClient
 {
-    private readonly HttpClient _httpClient;
-    
-    public StoreClient()
-    {
-        _httpClient = new HttpClient();
-        _httpClient.BaseAddress = new Uri("https://store.steampowered.com/api/");
-    }
-    
-    public async Task<Dictionary<int, string>> GetGenreMap(string appId)
-    {
-        HttpResponseMessage response = await _httpClient.GetAsync($"appdetails?appids={appId}");
-        var data = await response.Content.ReadFromJsonAsync<JsonElement>();
+    private static readonly HttpClient _httpClient = CreateClient();
 
-        if (data.TryGetProperty(appId, out JsonElement app) && app.TryGetProperty("data", out JsonElement appData) &&
-            appData.TryGetProperty("genres", out JsonElement genres))
+    private static HttpClient CreateClient()
+    {
+        var client = new HttpClient
         {
-            return genres.EnumerateArray()
-                .ToDictionary(x => int.Parse(x.GetProperty("id").GetString()), x => x.GetProperty("description").GetString());
-        }
+            BaseAddress = new Uri("https://store.steampowered.com/api/"),
+            Timeout = TimeSpan.FromSeconds(10)
+        };
+        return client;
+    }
 
-        return [];
+    public async Task<Dictionary<int, string>> GetGenreMap(string appId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var response = await _httpClient.GetAsync($"appdetails?appids={appId}", cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return new Dictionary<int, string>();
+            }
+
+            var data = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken: cancellationToken);
+            if (data.ValueKind != JsonValueKind.Object)
+            {
+                return new Dictionary<int, string>();
+            }
+
+            if (data.TryGetProperty(appId, out JsonElement app) && app.TryGetProperty("data", out JsonElement appData) &&
+                appData.TryGetProperty("genres", out JsonElement genres) && genres.ValueKind == JsonValueKind.Array)
+            {
+                var map = new Dictionary<int, string>();
+                foreach (var x in genres.EnumerateArray())
+                {
+                    string? idStr = null;
+                    string? description = null;
+                    try
+                    {
+                        idStr = x.GetProperty("id").GetString();
+                        description = x.GetProperty("description").GetString();
+                    }
+                    catch
+                    {
+                        continue;
+                    }
+
+                    if (int.TryParse(idStr, out var id))
+                    {
+                        map[id] = description ?? string.Empty;
+                    }
+                }
+                return map;
+            }
+
+            return new Dictionary<int, string>();
+        }
+        catch
+        {
+            return new Dictionary<int, string>();
+        }
     }
 }

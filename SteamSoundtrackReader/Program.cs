@@ -3,30 +3,52 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using System.Linq;
+using System.Threading;
 using ValveKeyValue;
 
 namespace SteamSoundtrackReader;
 
 class Program
 {
+    public static LibraryFolders LibraryFolders { get; set; } = new();
     static async Task Main(string[] args)
     {
-        if (!Directory.Exists(@".\apps"))
+        LibraryFolders = LibraryFolders.Read(@"C:\Program Files (x86)\Steam\steamapps\libraryfolders.vdf");
+        
+        try
         {
+            // Ensure output directories exist (idempotent)
             Directory.CreateDirectory(@".\apps");
-        }
-
-        if (!Directory.Exists(@".\albums"))
-        {
             Directory.CreateDirectory(@".\albums");
+
+            // Determine appinfo.vdf path from args or common defaults
+            string appInfoPath = args.Length > 0 ? args[0] : new[]
+            {
+                @"C:\\Program Files (x86)\\Steam\\appcache\\appinfo.vdf",
+                @"C:\\Program Files\\Steam\\appcache\\appinfo.vdf"
+            }.FirstOrDefault(File.Exists) ?? string.Empty;
+
+            if (string.IsNullOrWhiteSpace(appInfoPath) || !File.Exists(appInfoPath))
+            {
+                Console.Error.WriteLine("Could not find appinfo.vdf. Pass the full path as the first argument.");
+                Environment.ExitCode = 1;
+                return;
+            }
+
+            await using var stream = new FileStream(appInfoPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+
+            GetVdfType(stream);
+
+            var storeClient = new StoreClient();
+            var cts = new CancellationTokenSource();
+            await Read(stream, storeClient, cts.Token);
         }
-
-        await using var stream = new FileStream(@"C:\Program Files (x86)\Steam\appcache\appinfo.vdf", FileMode.Open,
-            FileAccess.Read, FileShare.ReadWrite);
-
-        GetVdfType(stream);
-
-        await Read(stream);
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Fatal error: {ex.Message}");
+            Environment.ExitCode = 1;
+        }
     }
 
     private static void GetVdfType(FileStream stream)
@@ -51,7 +73,7 @@ class Program
         }
     }
 
-    public static async Task Read(Stream input)
+    public static async Task Read(Stream input, StoreClient storeClient, CancellationToken cancellationToken = default)
     {
         using var reader = new BinaryReader(input);
         var magic = reader.ReadUInt32();
@@ -77,6 +99,10 @@ class Program
         {
             var stringTableOffset = reader.ReadInt64();
             var offset = reader.BaseStream.Position;
+            if (stringTableOffset < 0 || stringTableOffset >= reader.BaseStream.Length)
+            {
+                throw new InvalidDataException("Invalid string table offset");
+            }
             reader.BaseStream.Position = stringTableOffset;
             var stringCount = reader.ReadUInt32();
             var stringPool = new string[stringCount];
@@ -124,22 +150,26 @@ class Program
 
             if (reader.BaseStream.Position != end)
             {
-                throw new InvalidDataException();
+                // Skip to the end of this entry if sizes don't match
+                reader.BaseStream.Position = end;
+                continue;
             }
 
             if (app.Data["common"]?["type"]?.ToString() == "Music")
             {
-                var appName = app.Data["common"]?["name"]?.ToString(CultureInfo.CurrentCulture) ??
-                              throw new Exception("Missing name");
-                var appId = app.Data["appid"]?.ToString(CultureInfo.CurrentCulture) ??
-                            throw new Exception("Missing appid");
+                var appName = app.Data["common"]?["name"]?.ToString(CultureInfo.CurrentCulture);
+                var appId = app.Data["appid"]?.ToString(CultureInfo.CurrentCulture);
+                if (string.IsNullOrWhiteSpace(appName) || string.IsNullOrWhiteSpace(appId))
+                {
+                    Console.Error.WriteLine("Skipping app due to missing name/appid.");
+                    reader.BaseStream.Position = end;
+                    continue;
+                }
                 Console.WriteLine($"{appName} ({appId})");
                 var soundtrack = new Soundtrack()
                 {
-                    Name = app.Data["common"]?["name"]?.ToString(CultureInfo.CurrentCulture) ??
-                           throw new Exception("Missing name"),
-                    AppId = app.Data["appid"]?.ToString(CultureInfo.CurrentCulture) ??
-                            throw new Exception("Missing appid"),
+                    Name = appName,
+                    AppId = appId,
                     MetaCriticName = app.Data["common"]?["metacritic_name"]?.ToString(CultureInfo.CurrentCulture),
                 };
 
@@ -155,8 +185,15 @@ class Program
                 soundtrack.ReviewScore = app.Data["common"]?["review_score"]?.ToInt32(CultureInfo.CurrentCulture);
                 soundtrack.ReviewPercentage =
                     app.Data["common"]?["review_percentage"]?.ToInt32(CultureInfo.CurrentCulture);
-                soundtrack.InstallDir = app.Data["config"]?["installdir"]?.ToString(CultureInfo.CurrentCulture) ??
-                                        throw new Exception("Missing installdir");
+
+                string installDir = string.Empty;
+                var library = LibraryFolders.GetLibraryFromAppId(appId);
+                if (app.Data["config"]?["installdir"]?.ToString(CultureInfo.CurrentCulture) is not null && library is not null)
+                {
+                    installDir = Path.Combine(library.Path, app.Data["config"]["installdir"].ToString(CultureInfo.CurrentCulture));
+                }
+                
+                soundtrack.InstallDir = installDir;
 
                 soundtrack.AlbumData = new AlbumData()
                 {
@@ -173,8 +210,7 @@ class Program
                     }
                 };
 
-                StoreClient storeClient = new StoreClient();
-                var genreMap = await storeClient.GetGenreMap(appId);
+                var genreMap = await storeClient.GetGenreMap(appId, cancellationToken);
 
                 if (app.Data["common"]?["primary_genre"] is not null)
                 {
@@ -197,44 +233,65 @@ class Program
                     }
                 }
 
-                foreach (var track in app.Data["albummetadata"]["tracks"] as IEnumerable<KVObject>)
+                if (app.Data["albummetadata"]?["tracks"] is IEnumerable<KVObject> trackList)
                 {
-                    var minutes = track?["m"]?.ToInt32(CultureInfo.CurrentCulture);
-                    var seconds = track?["s"]?.ToInt32(CultureInfo.CurrentCulture);
-
-                    TimeSpan? duration = null;
-                    if (minutes.HasValue || seconds.HasValue)
+                    foreach (var track in trackList)
                     {
-                        var totalSeconds = (minutes ?? 0) * 60 + (seconds ?? 0);
-                        if (totalSeconds >= 0)
+                        var minutes = track?["m"]?.ToInt32(CultureInfo.CurrentCulture);
+                        var seconds = track?["s"]?.ToInt32(CultureInfo.CurrentCulture);
+
+                        TimeSpan? duration = null;
+                        if (minutes.HasValue || seconds.HasValue)
                         {
-                            duration = TimeSpan.FromSeconds(totalSeconds);
+                            var totalSeconds = (minutes ?? 0) * 60 + (seconds ?? 0);
+                            if (totalSeconds >= 0)
+                            {
+                                duration = TimeSpan.FromSeconds(totalSeconds);
+                            }
                         }
-                    }
 
-                    soundtrack.AlbumData.Tracks.Add(new Track()
-                    {
-                        DiscNumber = track?["discnumber"]?.ToInt32(CultureInfo.CurrentCulture) ??
-                                     throw new Exception("Missing track discnumber"),
-                        TrackNumber = track?["tracknumber"]?.ToInt32(CultureInfo.CurrentCulture) ??
-                                      throw new Exception("Missing track tracknumber"),
-                        OriginalName = track?["originalname"]?.ToString(CultureInfo.CurrentCulture) ??
-                                       throw new Exception("Missing track originalname"),
-                        Duration = duration
-                    });
+                        var discNumber = track?["discnumber"]?.ToInt32(CultureInfo.CurrentCulture);
+                        var trackNumber = track?["tracknumber"]?.ToInt32(CultureInfo.CurrentCulture);
+                        var originalName = track?["originalname"]?.ToString(CultureInfo.CurrentCulture);
+
+                        if (!discNumber.HasValue || !trackNumber.HasValue || string.IsNullOrWhiteSpace(originalName))
+                        {
+                            continue;
+                        }
+
+                        soundtrack.AlbumData.Tracks.Add(new Track()
+                        {
+                            DiscNumber = discNumber.Value,
+                            TrackNumber = trackNumber.Value,
+                            OriginalName = originalName,
+                            Duration = duration
+                        });
+                    }
                 }
 
-                var json = JsonSerializer.Serialize(soundtrack, new JsonSerializerOptions()
+                try
                 {
-                    WriteIndented = true,
-                });
+                    var json = JsonSerializer.Serialize(soundtrack, new JsonSerializerOptions()
+                    {
+                        WriteIndented = true,
+                    });
+                    File.WriteAllText(Path.Combine(@".\albums", $"{appid}.json"), json);
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine($"Failed to write JSON for {appid}: {ex.Message}");
+                }
 
-                File.WriteAllText(Path.Combine(@".\albums", $"{appid}.json"), json);
-
-                var serializer = KVSerializer.Create(KVSerializationFormat.KeyValues1Text);
-                using FileStream writer = File.OpenWrite(Path.Combine(@".\albums", $"{appid}.vdf"));
-
-                serializer.Serialize(writer, app.Data);
+                try
+                {
+                    var serializer = KVSerializer.Create(KVSerializationFormat.KeyValues1Text);
+                    using FileStream writer = File.Open(Path.Combine(@".\albums", $"{appid}.vdf"), FileMode.Create, FileAccess.Write, FileShare.Read);
+                    serializer.Serialize(writer, app.Data);
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine($"Failed to write VDF for {appid}: {ex.Message}");
+                }
             }
         } while (true);
     }
