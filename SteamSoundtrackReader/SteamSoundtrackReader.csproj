@@ -1,11 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <OutputType>Exe</OutputType>
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <OutputType>Library</OutputType>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <PackageId>SteamSoundtrackReader</PackageId>
+        <Authors>Unknown</Authors>
+        <Description>API for reading Steam appinfo.vdf to extract soundtrack metadata.</Description>
+        <RepositoryUrl>https://github.com/</RepositoryUrl>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
     </PropertyGroup>
+
+    <ItemGroup>
+      <None Include="..\LICENSE" Pack="true" PackagePath="/" Link="LICENSE" />
+    </ItemGroup>
 
     <ItemGroup>
       <PackageReference Include="ValveKeyValue" Version="0.20.0.417" />
