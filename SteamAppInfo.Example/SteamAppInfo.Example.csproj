@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AssemblyName>SteamAppInfo.Example</AssemblyName>
+        <RootNamespace>SteamAppInfo.Example</RootNamespace>
+        <PackageId>SteamAppInfo.Example</PackageId>
+        <Authors>SteamAppInfo.Example</Authors>
+        <Company>SteamAppInfo.Example</Company>
+        <Product>SteamAppInfo.Example</Product>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\SteamAppInfo\SteamAppInfo.csproj" />
+    </ItemGroup>
+
+</Project>

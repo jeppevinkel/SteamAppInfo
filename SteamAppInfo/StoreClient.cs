@@ -1,7 +1,7 @@
 ﻿using System.Net.Http.Json;
 using System.Text.Json;
 
-namespace SteamSoundtrackReader;
+namespace SteamAppInfo;
 
 public class StoreClient
 {

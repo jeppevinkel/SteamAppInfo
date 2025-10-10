@@ -3,11 +3,10 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
-using System.Linq;
-using System.Threading;
+using SteamAppInfo.Steam.Enums;
 using ValveKeyValue;
 
-namespace SteamSoundtrackReader;
+namespace SteamAppInfo;
 
 class Program
 {
@@ -133,8 +132,8 @@ class Program
 
             var app = new App
             {
-                AppID = appid,
-                InfoState = reader.ReadUInt32(),
+                AppId = appid,
+                InfoState = (InfoState)reader.ReadUInt32(),
                 LastUpdated = DateTimeFromUnixTime(reader.ReadUInt32()),
                 Token = reader.ReadUInt64(),
                 Hash = new ReadOnlyCollection<byte>(reader.ReadBytes(20)),

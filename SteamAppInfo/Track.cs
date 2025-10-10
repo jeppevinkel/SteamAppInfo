@@ -1,4 +1,4 @@
-﻿namespace SteamSoundtrackReader;
+﻿namespace SteamAppInfo;
 
 public class Track
 {

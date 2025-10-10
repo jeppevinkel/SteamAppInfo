@@ -2,9 +2,10 @@ using System.Buffers;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Text;
+using SteamAppInfo.Steam.Enums;
 using ValveKeyValue;
 
-namespace SteamSoundtrackReader;
+namespace SteamAppInfo;
 
 /// <summary>
 /// High-level API for reading Steam appinfo.vdf and extracting soundtrack metadata.
@@ -94,8 +95,8 @@ public class SteamSoundtrackScanner
 
             var app = new App
             {
-                AppID = appid,
-                InfoState = reader.ReadUInt32(),
+                AppId = appid,
+                InfoState = (InfoState)reader.ReadUInt32(),
                 LastUpdated = DateTimeFromUnixTime(reader.ReadUInt32()),
                 Token = reader.ReadUInt64(),
                 Hash = new ReadOnlyCollection<byte>(reader.ReadBytes(20)),

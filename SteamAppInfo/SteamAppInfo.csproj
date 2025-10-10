@@ -4,13 +4,26 @@
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <RootNamespace>SteamAppInfo</RootNamespace>
         <OutputType>Library</OutputType>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
-        <PackageId>SteamSoundtrackReader</PackageId>
-        <Authors>Unknown</Authors>
+        <PackageId>SteamAppInfo</PackageId>
+        <Authors>Jeppevinkel</Authors>
         <Description>API for reading Steam appinfo.vdf to extract soundtrack metadata.</Description>
         <RepositoryUrl>https://github.com/</RepositoryUrl>
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <AssemblyName>SteamAppInfo</AssemblyName>
+        <RepositoryType>github</RepositoryType>
+        <PackageTags>Steam,AppInfo,Steam App Info</PackageTags>
+        <Product>SteamAppInfo</Product>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <DocumentationFile>obj\Debug\net8.0\SteamAppInfo.xml</DocumentationFile>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <DocumentationFile>obj\Release\net8.0\SteamAppInfo.xml</DocumentationFile>
     </PropertyGroup>
 
     <ItemGroup>
@@ -18,11 +31,8 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
       <PackageReference Include="ValveKeyValue" Version="0.20.0.417" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Enums\" />
     </ItemGroup>
 
 </Project>

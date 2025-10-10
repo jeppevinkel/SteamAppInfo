@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 using ValveKeyValue;
 
-namespace SteamSoundtrackReader;
+namespace SteamAppInfo;
 
 public class LibraryFolders
 {
