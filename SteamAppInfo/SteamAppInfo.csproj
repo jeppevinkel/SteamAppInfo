@@ -10,12 +10,15 @@
         <PackageId>SteamAppInfo</PackageId>
         <Authors>Jeppevinkel</Authors>
         <Description>API for reading Steam appinfo.vdf to extract soundtrack metadata.</Description>
-        <RepositoryUrl>https://github.com/</RepositoryUrl>
+        <RepositoryUrl>https://github.com/jeppevinkel/SteamAppInfo</RepositoryUrl>
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
         <AssemblyName>SteamAppInfo</AssemblyName>
         <RepositoryType>github</RepositoryType>
         <PackageTags>Steam,AppInfo,Steam App Info</PackageTags>
         <Product>SteamAppInfo</Product>
+        <Title>SteamAppInfo</Title>
+        <PackageProjectUrl>https://github.com/jeppevinkel/SteamAppInfo</PackageProjectUrl>
+        <PackageLicenseUrl>https://github.com/jeppevinkel/SteamAppInfo/blob/main/LICENSE</PackageLicenseUrl>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
