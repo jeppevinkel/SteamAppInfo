@@ -1,4 +1,6 @@
-﻿namespace SteamAppInfo;
+﻿using SteamAppInfo.Music;
+
+namespace SteamAppInfo;
 
 public class AlbumData
 {

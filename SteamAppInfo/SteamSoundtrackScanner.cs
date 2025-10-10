@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Text;
+using SteamAppInfo.Music;
 using SteamAppInfo.Steam.Enums;
 using SteamAppInfo.Steam.Models;
 using ValveKeyValue;
@@ -131,7 +132,7 @@ public class SteamSoundtrackScanner
                 var soundtrack = new Soundtrack()
                 {
                     Name = appName,
-                    AppId = appId,
+                    AppId = appid,
                     MetaCriticName = app.Data["common"]?["metacritic_name"]?.ToString(CultureInfo.CurrentCulture),
                 };
 
@@ -157,19 +158,16 @@ public class SteamSoundtrackScanner
 
                 soundtrack.InstallDir = installDir;
 
-                soundtrack.AlbumData = new AlbumData()
+                soundtrack.Metadata = new Metadata()
                 {
-                    Metadata = new Metadata()
-                    {
-                        Artist = app.Data["albummetadata"]?["metadata"]?["artist"]?["english"]
-                            ?.ToString(CultureInfo.CurrentCulture),
-                        Composer = app.Data["albummetadata"]?["metadata"]?["composer"]?["english"]
-                            ?.ToString(CultureInfo.CurrentCulture),
-                        Label = app.Data["albummetadata"]?["metadata"]?["Label"]?["english"]
-                            ?.ToString(CultureInfo.CurrentCulture),
-                        Credits = app.Data["albummetadata"]?["metadata"]?["othercredits"]?["english"]
-                            ?.ToString(CultureInfo.CurrentCulture),
-                    }
+                    Artist = app.Data["albummetadata"]?["metadata"]?["artist"]?["english"]
+                        ?.ToString(CultureInfo.CurrentCulture),
+                    Composer = app.Data["albummetadata"]?["metadata"]?["composer"]?["english"]
+                        ?.ToString(CultureInfo.CurrentCulture),
+                    Label = app.Data["albummetadata"]?["metadata"]?["Label"]?["english"]
+                        ?.ToString(CultureInfo.CurrentCulture),
+                    Credits = app.Data["albummetadata"]?["metadata"]?["othercredits"]?["english"]
+                        ?.ToString(CultureInfo.CurrentCulture),
                 };
 
                 var genreMap = await storeClient.GetGenreMap(appId, cancellationToken).ConfigureAwait(false);
@@ -221,7 +219,7 @@ public class SteamSoundtrackScanner
                             continue;
                         }
 
-                        soundtrack.AlbumData.Tracks.Add(new Track()
+                        soundtrack.Tracks.Add(new Track()
                         {
                             DiscNumber = discNumber.Value,
                             TrackNumber = trackNumber.Value,
