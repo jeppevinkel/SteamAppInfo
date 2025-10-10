@@ -12,10 +12,10 @@ namespace SteamAppInfo;
 
 class Program
 {
-    public static LibraryFolders LibraryFolders { get; set; } = new();
+    public static List<Library> LibraryFolders { get; set; } = new();
     static async Task Main(string[] args)
     {
-        LibraryFolders = LibraryFolders.Read(@"C:\Program Files (x86)\Steam\steamapps\libraryfolders.vdf");
+        LibraryFolders = new List<Library>();
         
         try
         {
@@ -188,7 +188,7 @@ class Program
                     app.Data["common"]?["review_percentage"]?.ToInt32(CultureInfo.CurrentCulture);
 
                 string installDir = string.Empty;
-                var library = LibraryFolders.GetLibraryFromAppId(appId);
+                var library = LibraryFolders.FirstOrDefault(it => it.Apps.Contains(uint.Parse(appId)));
                 if (app.Data["config"]?["installdir"]?.ToString(CultureInfo.CurrentCulture) is not null && library is not null)
                 {
                     installDir = Path.Combine(library.Path, app.Data["config"]["installdir"].ToString(CultureInfo.CurrentCulture));

@@ -14,7 +14,7 @@ class Program
         SteamClient steamClient = SteamClient.AutoDetectSteam();
         Console.WriteLine(steamClient.SteamPath);
 
-        // var apps = steamClient.GetApps();
+        //var apps = steamClient.GetApps();
         //
         // Dictionary<AppType, int> appTypes = [];
         // Dictionary<InfoState, int> infoStates = [];
@@ -52,22 +52,27 @@ class Program
         // {
         //     Console.WriteLine(app.Name);
         // }
-        
-        var musicApps = steamClient.GetApps().Where(it => it.AppType == AppType.Music);
 
-        foreach (App musicApp in musicApps)
-        {
-            if (!musicApp.TryParseSoundtrack(out Soundtrack? soundtrack))
-            {
-                Console.WriteLine($"{musicApp.Name} ({musicApp.AppId}): No soundtrack");
-            }
-        }
+        // foreach (App app in apps)
+        // {
+        //     Console.WriteLine($"{app.Name} ({app.AppId}): {app.InstallDir}");
+        // }
+        
+        // var musicApps = steamClient.GetApps().Where(it => it.AppType == AppType.Music);
+        //
+        // foreach (App musicApp in musicApps)
+        // {
+        //     if (!musicApp.TryParseSoundtrack(out Soundtrack? soundtrack))
+        //     {
+        //         Console.WriteLine($"{musicApp.Name} ({musicApp.AppId}): No soundtrack");
+        //     }
+        // }
 
         var soundtracks = steamClient.GetSoundtracks();
         
         foreach (Soundtrack soundtrack in soundtracks)
         {
-            Console.WriteLine($"{soundtrack.Name} ({soundtrack.AppId}): {soundtrack.Tracks.Count}");
+            Console.WriteLine($"{soundtrack.Name} ({soundtrack.AppId}): {soundtrack.InstallDir}");
         }
     }
 }

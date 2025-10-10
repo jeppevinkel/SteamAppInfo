@@ -28,14 +28,13 @@ public class SteamSoundtrackScanner
         if (!File.Exists(appInfoPath)) throw new FileNotFoundException("Could not find appinfo.vdf", appInfoPath);
         if (!File.Exists(libraryFoldersVdfPath)) throw new FileNotFoundException("Could not find libraryfolders.vdf", libraryFoldersVdfPath);
 
-        var libraryFolders = LibraryFolders.Read(libraryFoldersVdfPath);
         var storeClient = new StoreClient();
 
         await using var stream = new FileStream(appInfoPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-        return await ReadInternal(stream, storeClient, libraryFolders, cancellationToken).ConfigureAwait(false);
+        return await ReadInternal(stream, storeClient, new Library(){Path = ""}, cancellationToken).ConfigureAwait(false);
     }
 
-    private static async Task<List<Soundtrack>> ReadInternal(Stream input, StoreClient storeClient, LibraryFolders libraryFolders, CancellationToken cancellationToken)
+    private static async Task<List<Soundtrack>> ReadInternal(Stream input, StoreClient storeClient, Library libraryFolders, CancellationToken cancellationToken)
     {
         var soundtracks = new List<Soundtrack>();
 
@@ -150,8 +149,8 @@ public class SteamSoundtrackScanner
                     app.Data["common"]?["review_percentage"]?.ToInt32(CultureInfo.CurrentCulture);
 
                 string installDir = string.Empty;
-                var library = libraryFolders.GetLibraryFromAppId(appId);
-                if (app.Data["config"]?["installdir"]?.ToString(CultureInfo.CurrentCulture) is not null && library is not null)
+                var library = libraryFolders;
+                if (app.Data["config"]?["installdir"]?.ToString(CultureInfo.CurrentCulture) is not null)
                 {
                     installDir = Path.Combine(library.Path, app.Data["config"]["installdir"].ToString(CultureInfo.CurrentCulture));
                 }
