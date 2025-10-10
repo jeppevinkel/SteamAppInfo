@@ -5,6 +5,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RepositoryFiles", "RepositoryFiles", "{DCA6018B-02BE-4FE4-AD6A-F6BFB511E8FB}"
 	ProjectSection(SolutionItems) = preProject
 		LICENSE = LICENSE
+		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SteamAppInfo.Example", "SteamAppInfo.Example\SteamAppInfo.Example.csproj", "{390000A2-5C00-445E-9BBE-FCFB21342719}"

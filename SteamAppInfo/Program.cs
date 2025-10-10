@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using SteamAppInfo.Steam.Enums;
+using SteamAppInfo.Steam.Models;
 using ValveKeyValue;
 
 namespace SteamAppInfo;

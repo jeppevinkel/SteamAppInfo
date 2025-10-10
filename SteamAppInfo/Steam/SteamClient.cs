@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using Microsoft.Win32;
 using SteamAppInfo.Extensions;
 using SteamAppInfo.Steam.Enums;
+using SteamAppInfo.Steam.Models;
 using ValveKeyValue;
 
 namespace SteamAppInfo.Steam;

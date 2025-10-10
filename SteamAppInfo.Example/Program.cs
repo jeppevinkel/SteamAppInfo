@@ -1,5 +1,6 @@
 ﻿using SteamAppInfo.Steam;
 using SteamAppInfo.Steam.Enums;
+using SteamAppInfo.Steam.Models;
 using ValveKeyValue;
 
 namespace SteamAppInfo.Example;

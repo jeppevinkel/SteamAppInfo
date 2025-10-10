@@ -2,8 +2,11 @@
 using SteamAppInfo.Steam.Enums;
 using ValveKeyValue;
 
-namespace SteamAppInfo;
+namespace SteamAppInfo.Steam.Models;
 
+/// <summary>
+/// Steam app info.
+/// </summary>
 public class App
 {
     /// <summary>
