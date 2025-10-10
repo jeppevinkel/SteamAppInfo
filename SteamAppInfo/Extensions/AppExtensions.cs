@@ -48,7 +48,8 @@ public static class AppExtensions
                     ?.ToString(CultureInfo.CurrentCulture),
                 Credits = app.Data["albummetadata"]?["metadata"]?["othercredits"]?["english"]
                     ?.ToString(CultureInfo.CurrentCulture),
-            }
+            },
+            InstallDir = app.InstallDir,
         };
 
         if (app.Data["albummetadata"]?["tracks"] is IEnumerable<KVObject> tracks)

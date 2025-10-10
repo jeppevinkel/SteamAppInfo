@@ -21,14 +21,19 @@ public class SteamClient
     private KVSerializerOptions _kvSerializerOptions = new();
 
     // appinfo.vdf details
-    private uint? _magic = null;
-    private uint? _version = null;
-    private long? _offset = null;
+    private uint _magic;
+    private uint _version;
+    private long _offset;
 
     /// <summary>
     /// The universe of the Steam installation. (e.g. Public, Beta, Dev)
     /// </summary>
     public Universe? Universe = null;
+
+    /// <summary>
+    /// A list of all local Steam libraries with their associated apps.
+    /// </summary>
+    public readonly List<Library> Libraries = [];
 
     /// <summary>
     /// Get or set the path to the Steam install directory.
@@ -62,6 +67,9 @@ public class SteamClient
     public SteamClient(string steamPath)
     {
         SteamPath = steamPath;
+        
+        LoadAppInfo();
+        LoadLibraryFolders();
     }
 
     /// <summary>
@@ -112,7 +120,11 @@ public class SteamClient
         throw new Exception("Steam not found.");
     }
 
-    public void LoadAppInfo()
+    /// <summary>
+    /// Load the appinfo.vdf file.
+    /// </summary>
+    /// <exception cref="InvalidDataException">Thrown when shit hits the fan.</exception>
+    private void LoadAppInfo()
     {
         using FileStream stream = File.OpenRead(_appInfoPath);
         using var reader = new BinaryReader(stream);
@@ -152,9 +164,40 @@ public class SteamClient
                 stringPool[i] = reader.BaseStream.ReadNullTermUtf8String();
             }
 
-            reader.BaseStream.Position = _offset.Value;
+            reader.BaseStream.Position = _offset;
 
             _kvSerializerOptions.StringTable = new StringTable(stringPool);
+        }
+    }
+
+    /// <summary>
+    /// Load the libraryfolders.vdf file.
+    /// </summary>
+    private void LoadLibraryFolders()
+    {
+        Libraries.Clear();
+        using FileStream stream = File.OpenRead(_libraryFoldersPath);
+        
+        var serializer = KVSerializer.Create(KVSerializationFormat.KeyValues1Text);
+        KVDocument? data = serializer.Deserialize(stream);
+
+        if (data is IEnumerable<KVObject> libraries)
+        {
+            foreach (KVObject library in libraries)
+            {
+                var path = library["path"]?.ToString(CultureInfo.CurrentCulture);
+                if (path is null || library["apps"] is not IEnumerable<KVObject> apps)
+                {
+                    Console.WriteLine($"Invalid library: {path}");
+                    continue;
+                }
+                
+                Libraries.Add(new Library
+                {
+                    Path = path.Replace(@"\\", @"\"),
+                    Apps = apps.Select(it => uint.Parse(it.Name)).ToHashSet()
+                });
+            }
         }
     }
 
@@ -163,15 +206,10 @@ public class SteamClient
     /// </summary>
     public IEnumerable<App> GetApps()
     {
-        if (_magic is null || _version is null || _offset is null)
-        {
-            LoadAppInfo();
-        }
-        
         using FileStream stream = File.OpenRead(_appInfoPath);
         using var reader = new BinaryReader(stream);
 
-        reader.BaseStream.Position = _offset!.Value;
+        reader.BaseStream.Position = _offset;
 
         var deserializer = KVSerializer.Create(KVSerializationFormat.KeyValues1Binary);
 
@@ -189,6 +227,12 @@ public class SteamClient
             var size = reader.ReadUInt32(); // size until the end of Data
             var end = reader.BaseStream.Position + size;
 
+            var libraryPath = Libraries.FirstOrDefault(it => it.Apps.Contains(appid))?.Path;
+            if (libraryPath is not null)
+            {
+                libraryPath = Path.Join(libraryPath, "steamapps", "common");
+            }
+
             var app = new App
             {
                 AppId = appid,
@@ -197,6 +241,7 @@ public class SteamClient
                 Token = reader.ReadUInt64(),
                 Hash = new ReadOnlyCollection<byte>(reader.ReadBytes(20)),
                 ChangeNumber = reader.ReadUInt32(),
+                InstallDir = libraryPath,
             };
 
             if (_version >= 40)
@@ -206,21 +251,26 @@ public class SteamClient
             
             app.Data = deserializer.Deserialize(stream, _kvSerializerOptions);
             
-
-            if (app.Data["common"] is not null)
+            if (app.Data["common"] is null)
             {
-                app.Name = app.Data["common"]["name"].ToString(CultureInfo.InvariantCulture);
-                if (Enum.TryParse(typeof(AppType), app.Data["common"]["type"].ToString(CultureInfo.InvariantCulture), true, out var appType))
-                {
-                    app.AppType = (AppType) appType;
-                }
-                else
-                {
-                    app.AppType = AppType.Unknown;
-                }
-                
-                apps.Add(app);
+                reader.BaseStream.Position = end;
+                continue;
             }
+            
+            var appFolder = app.Data["config"]?["installdir"]?.ToString(CultureInfo.InvariantCulture);
+            app.InstallDir = libraryPath is not null ? Path.Join(libraryPath, appFolder) : null;
+            
+            app.Name = app.Data["common"]["name"].ToString(CultureInfo.InvariantCulture);
+            if (Enum.TryParse(typeof(AppType), app.Data["common"]["type"].ToString(CultureInfo.InvariantCulture), true, out var appType))
+            {
+                app.AppType = (AppType) appType;
+            }
+            else
+            {
+                app.AppType = AppType.Unknown;
+            }
+
+            apps.Add(app);
 
             if (reader.BaseStream.Position == end) continue;
             // Skip to the end of this entry if sizes don't match

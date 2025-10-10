@@ -43,7 +43,7 @@ public class Soundtrack
     /// <summary>
     /// The installation directory of the soundtrack.
     /// </summary>
-    public string InstallDir { get; set; } = string.Empty;
+    public string? InstallDir { get; set; }
     
     /// <summary>
     /// Soundtrack metadata.

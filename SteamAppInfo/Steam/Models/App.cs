@@ -18,6 +18,11 @@ public class App
     /// Name of the app.
     /// </summary>
     public string Name { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// The installation directory of the app.
+    /// </summary>
+    public string? InstallDir { get; set; }
 
     /// <summary>
     /// Info state of the app.
