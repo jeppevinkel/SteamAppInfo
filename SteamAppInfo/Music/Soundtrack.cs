@@ -1,4 +1,6 @@
-﻿namespace SteamAppInfo.Music;
+﻿using ValveKeyValue;
+
+namespace SteamAppInfo.Music;
 
 /// <summary>
 /// An object representation of a Steam soundtrack.
@@ -64,4 +66,9 @@ public class Soundtrack
     /// A list of all genres of the soundtrack (if available).
     /// </summary>
     public List<string> Genres { get; set; } = [];
+
+    /// <summary>
+    /// AppInfo VDF data.
+    /// </summary>
+    public KVObject Data { get; set; } = new KVObject("unknown", new KVArrayValue());
 }

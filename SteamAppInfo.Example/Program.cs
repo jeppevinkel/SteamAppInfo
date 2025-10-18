@@ -2,8 +2,6 @@
 using SteamAppInfo.Music;
 using SteamAppInfo.Steam;
 using SteamAppInfo.Steam.Enums;
-using SteamAppInfo.Steam.Models;
-using ValveKeyValue;
 
 namespace SteamAppInfo.Example;
 
@@ -11,68 +9,34 @@ class Program
 {
     static async Task Main(string[] args)
     {
+        // Create a Steam client with auto-detection of the Steam installation path
         SteamClient steamClient = SteamClient.AutoDetectSteam();
         Console.WriteLine(steamClient.SteamPath);
 
-        //var apps = steamClient.GetApps();
-        //
-        // Dictionary<AppType, int> appTypes = [];
-        // Dictionary<InfoState, int> infoStates = [];
-        //
-        // foreach (var app in apps)
-        // {
-        //     if (!appTypes.TryAdd(app.AppType, 1))
-        //     {
-        //         appTypes[app.AppType]++;
-        //     }
-        //     if (!infoStates.TryAdd(app.InfoState, 1))
-        //     {
-        //         infoStates[app.InfoState]++;
-        //     }
-        //
-        //     if (app.InfoState == InfoState.NoInfo)
-        //     {
-        //         var serializer = KVSerializer.Create(KVSerializationFormat.KeyValues1Text);
-        //         await using FileStream writer = File.Open(Path.Combine(@".\no-info", $"{app.AppId}.vdf"), FileMode.Create, FileAccess.Write, FileShare.Read);
-        //         serializer.Serialize(writer, app.Data);
-        //     }
-        // }
-        //
-        // foreach (var appType in appTypes)
-        // {
-        //     Console.WriteLine($"{appType.Key}: {appType.Value}");
-        // }
-        //
-        // foreach (var infoState in infoStates)
-        // {
-        //     Console.WriteLine($"{infoState.Key}: {infoState.Value}");
-        // }
-        //
-        // foreach (App app in apps.Where(it => it.AppType == AppType.Beta))
-        // {
-        //     Console.WriteLine(app.Name);
-        // }
-
-        // foreach (App app in apps)
-        // {
-        //     Console.WriteLine($"{app.Name} ({app.AppId}): {app.InstallDir}");
-        // }
+        // Get all installed apps
+        var apps = steamClient.GetApps();
         
-        // var musicApps = steamClient.GetApps().Where(it => it.AppType == AppType.Music);
-        //
-        // foreach (App musicApp in musicApps)
-        // {
-        //     if (!musicApp.TryParseSoundtrack(out Soundtrack? soundtrack))
-        //     {
-        //         Console.WriteLine($"{musicApp.Name} ({musicApp.AppId}): No soundtrack");
-        //     }
-        // }
+        // Filter for all DLCs
+        var dlcApps = apps.Where(it => it.AppType == AppType.DLC);
+        Console.WriteLine($"Found {dlcApps.Count()} DLCs");
 
+        // Get all soundtracks with parsed metadata
         var soundtracks = steamClient.GetSoundtracks();
-        
         foreach (Soundtrack soundtrack in soundtracks)
         {
-            Console.WriteLine($"{soundtrack.Name} ({soundtrack.AppId}): {soundtrack.InstallDir}");
+            Console.WriteLine(soundtrack.InstallDir is null
+                ? $"{soundtrack.Name} ({soundtrack.AppId}): Not currently installed"
+                : $"{soundtrack.Name} ({soundtrack.AppId}): {soundtrack.InstallDir}");
         }
+        
+        // Query raw VDF data
+        var firstSoundtrack = soundtracks.FirstOrDefault();
+
+        if (firstSoundtrack is null)
+        {
+            throw new Exception("No soundtracks found.");
+        }
+        
+        Console.WriteLine($"The artist of {firstSoundtrack.Name} is {firstSoundtrack?.Data["albummetadata"]?["metadata"]?["artist"]?["english"]}");
     }
 }

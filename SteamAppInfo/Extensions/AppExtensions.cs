@@ -50,6 +50,7 @@ public static class AppExtensions
                     ?.ToString(CultureInfo.CurrentCulture),
             },
             InstallDir = app.InstallDir,
+            Data = app.Data,
         };
 
         if (app.Data["albummetadata"]?["tracks"] is IEnumerable<KVObject> tracks)
