@@ -39,7 +39,7 @@
     <ItemGroup>
       <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
       <PackageReference Include="ValveKeyValue" Version="0.20.0.417" />
-      <PackageReference Include="MinVer" Version="4.3.0">
+      <PackageReference Include="MinVer" Version="6.0.0">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
       </PackageReference>
