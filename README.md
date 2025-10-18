@@ -4,6 +4,8 @@ This is a project that aims to provide a simple interface for retrieving Steam a
 
 ## Usage
 
+For a more comprehensive example, see the [SteamAppInfo.Example](https://github.com/jeppevinkel/SteamAppInfo/blob/main/SteamAppInfo.Example/Program.cs) project.
+
 ### Get a list of all Steam apps
 
 ```csharp
