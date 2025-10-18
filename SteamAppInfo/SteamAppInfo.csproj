@@ -19,7 +19,7 @@
         <PackageProjectUrl>https://github.com/jeppevinkel/SteamAppInfo</PackageProjectUrl>
         <RepositoryUrl>https://github.com/jeppevinkel/SteamAppInfo</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
-        <PackageLicenseUrl>https://github.com/jeppevinkel/SteamAppInfo/blob/main/LICENSE</PackageLicenseUrl>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
         <PackageReadmeFile>README.md</PackageReadmeFile>
     </PropertyGroup>
 
