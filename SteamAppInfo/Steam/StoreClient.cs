@@ -1,8 +1,11 @@
 ﻿using System.Net.Http.Json;
 using System.Text.Json;
 
-namespace SteamAppInfo;
+namespace SteamAppInfo.Steam;
 
+/// <summary>
+/// Client used to fetch info from the Steam store API.
+/// </summary>
 public class StoreClient
 {
     private static readonly HttpClient _httpClient = CreateClient();

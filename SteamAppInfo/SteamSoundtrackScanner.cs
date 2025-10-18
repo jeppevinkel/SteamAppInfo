@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Text;
 using SteamAppInfo.Music;
+using SteamAppInfo.Steam;
 using SteamAppInfo.Steam.Enums;
 using SteamAppInfo.Steam.Models;
 using ValveKeyValue;
