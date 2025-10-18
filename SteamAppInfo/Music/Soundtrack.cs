@@ -43,7 +43,7 @@ public class Soundtrack
     public int? ReviewPercentage { get; set; }
     
     /// <summary>
-    /// The installation directory of the soundtrack.
+    /// The installation directory of the soundtrack (if currently installed).
     /// </summary>
     public string? InstallDir { get; set; }
     
