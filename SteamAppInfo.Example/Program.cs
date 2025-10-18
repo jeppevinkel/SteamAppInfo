@@ -7,7 +7,7 @@ namespace SteamAppInfo.Example;
 
 class Program
 {
-    static async Task Main(string[] args)
+    static void Main(string[] args)
     {
         // Create a Steam client with auto-detection of the Steam installation path
         SteamClient steamClient = SteamClient.AutoDetectSteam();
