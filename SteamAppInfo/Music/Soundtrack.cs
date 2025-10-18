@@ -48,6 +48,11 @@ public class Soundtrack
     public string? InstallDir { get; set; }
     
     /// <summary>
+    /// Returns true if the soundtrack is installed.
+    /// </summary>
+    public bool IsInstalled => !string.IsNullOrEmpty(InstallDir);
+    
+    /// <summary>
     /// Soundtrack metadata.
     /// </summary>
     public Metadata Metadata { get; set; } = new();

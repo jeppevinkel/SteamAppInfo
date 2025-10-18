@@ -24,9 +24,9 @@ class Program
         var soundtracks = steamClient.GetSoundtracks();
         foreach (Soundtrack soundtrack in soundtracks)
         {
-            Console.WriteLine(soundtrack.InstallDir is null
-                ? $"{soundtrack.Name} ({soundtrack.AppId}): Not currently installed"
-                : $"{soundtrack.Name} ({soundtrack.AppId}): {soundtrack.InstallDir}");
+            Console.WriteLine(soundtrack.IsInstalled
+                ? $"{soundtrack.Name} ({soundtrack.AppId}): {soundtrack.InstallDir}"
+                : $"{soundtrack.Name} ({soundtrack.AppId}): Not currently installed");
         }
         
         // Query raw VDF data
