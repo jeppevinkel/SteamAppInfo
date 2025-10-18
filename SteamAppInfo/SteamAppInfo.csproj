@@ -7,18 +7,20 @@
         <RootNamespace>SteamAppInfo</RootNamespace>
         <OutputType>Library</OutputType>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        
         <PackageId>SteamAppInfo</PackageId>
         <Authors>Jeppevinkel</Authors>
         <Description>API for reading Steam appinfo.vdf to extract soundtrack metadata.</Description>
-        <RepositoryUrl>https://github.com/jeppevinkel/SteamAppInfo</RepositoryUrl>
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
         <AssemblyName>SteamAppInfo</AssemblyName>
-        <RepositoryType>github</RepositoryType>
         <PackageTags>Steam,AppInfo,Steam App Info</PackageTags>
         <Product>SteamAppInfo</Product>
         <Title>SteamAppInfo</Title>
         <PackageProjectUrl>https://github.com/jeppevinkel/SteamAppInfo</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/jeppevinkel/SteamAppInfo</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
         <PackageLicenseUrl>https://github.com/jeppevinkel/SteamAppInfo/blob/main/LICENSE</PackageLicenseUrl>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -31,11 +33,21 @@
 
     <ItemGroup>
       <None Include="..\LICENSE" Pack="true" PackagePath="/" Link="LICENSE" />
+      <None Include="..\README.md" Pack="true" PackagePath="/" />
     </ItemGroup>
 
     <ItemGroup>
       <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
       <PackageReference Include="ValveKeyValue" Version="0.20.0.417" />
+      <PackageReference Include="MinVer" Version="4.3.0">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+      </PackageReference>
     </ItemGroup>
+
+    <PropertyGroup>
+      <MinVerTagPrefix>v</MinVerTagPrefix>
+      <MinVerVerbosity>normal</MinVerVerbosity>
+    </PropertyGroup>
 
 </Project>
