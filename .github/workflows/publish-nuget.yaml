@@ -29,7 +29,7 @@ jobs:
         run: dotnet test --configuration Release --no-build --verbosity normal
 
       - name: Pack
-        run: dotnet pack --configuration Release --no-build --output ./artifacts
+        run: dotnet pack SteamAppInfo/SteamAppInfo.csproj --configuration Release --no-build --output ./artifacts
 
       - name: Publish to NuGet
         if: startsWith(github.ref, 'refs/tags/v')
