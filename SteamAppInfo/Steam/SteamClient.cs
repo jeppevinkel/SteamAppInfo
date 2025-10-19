@@ -227,12 +227,6 @@ public class SteamClient
             var size = reader.ReadUInt32(); // size until the end of Data
             var end = reader.BaseStream.Position + size;
 
-            var libraryPath = Libraries.FirstOrDefault(it => it.Apps.Contains(appid))?.Path;
-            if (libraryPath is not null)
-            {
-                libraryPath = Path.Join(libraryPath, "steamapps", "common");
-            }
-
             var app = new App
             {
                 AppId = appid,
@@ -241,7 +235,7 @@ public class SteamClient
                 Token = reader.ReadUInt64(),
                 Hash = new ReadOnlyCollection<byte>(reader.ReadBytes(20)),
                 ChangeNumber = reader.ReadUInt32(),
-                InstallDir = libraryPath,
+                InstallDir = null,
             };
 
             if (_version >= 40)
@@ -257,9 +251,6 @@ public class SteamClient
                 continue;
             }
             
-            var appFolder = app.Data["config"]?["installdir"]?.ToString(CultureInfo.InvariantCulture);
-            app.InstallDir = libraryPath is not null ? Path.Join(libraryPath, appFolder) : null;
-            
             app.Name = app.Data["common"]["name"].ToString(CultureInfo.InvariantCulture);
             if (Enum.TryParse(typeof(AppType), app.Data["common"]["type"].ToString(CultureInfo.InvariantCulture), true, out var appType))
             {
@@ -268,6 +259,15 @@ public class SteamClient
             else
             {
                 app.AppType = AppType.Unknown;
+            }
+
+            var libraryPath = Libraries.FirstOrDefault(it => it.Apps.Contains(appid))?.Path;
+            if (libraryPath is not null)
+            {
+                libraryPath = Path.Join(libraryPath, "steamapps", app.AppType == AppType.Music ? "music" : "common");
+
+                var appFolder = app.Data["config"]?["installdir"]?.ToString(CultureInfo.InvariantCulture);
+                app.InstallDir = Path.Join(libraryPath, appFolder);
             }
 
             apps.Add(app);
