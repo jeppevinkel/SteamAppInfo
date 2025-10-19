@@ -1,4 +1,5 @@
 # SteamAppInfo
+[![NuGet Version](https://img.shields.io/nuget/v/SteamAppInfo)](https://www.nuget.org/packages/SteamAppInfo/)
 
 This is a project that aims to provide a simple interface for retrieving Steam app information from the appinfo.vdf file within the local appcache.
 
